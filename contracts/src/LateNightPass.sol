@@ -3,6 +3,10 @@ pragma solidity ^0.8.20;
 
 import {IVerifier} from "./IVerifier.sol";
 
+/// @title LateNightPass
+/// @notice Age-gated festival pass: claim only via valid Noir proof. Policy fixed by circuit/contract.
+/// @dev current_day derived from block.timestamp by contract; claimer derived from msg.sender; public inputs built by contract.
+///      Verification required before recording any state; one pass per address; nullifier replay protected.
 contract LateNightPass {
     IVerifier public immutable verifier;
     

@@ -40,18 +40,18 @@ The birth date is never public and never returned from `main`.
 
 ## Acceptance checks
 
-| # | Check | Where | Status |
+| # | Check | Where | Status (evidence) |
 |---|---|---|---|
-| 1 | Policy fixed by circuit/contract | `MIN_AGE_DAYS` global in `main.nr`; day derived in `LateNightPass.sol:24` | **PASS** (code present) |
-| 2 | Bound to claimer | `LateNightPass.sol:25` (`msg.sender`) | **PASS** (tested) |
-| 3 | Age enforced by assertion | `main.nr:15,19` | **PASS** (code present; circuit tests BLOCKED) |
-| 4 | No second acceptance | `LateNightPass.sol:20,21,37,38` | **PASS** (tested) |
-| 5 | Stale proofs rejected | day from `block.timestamp`; `testStaleDayAfterWarpFails` | **PASS** (tested with mock) |
-| 6 | Proving on buyer device | `client/src/prove.ts` (skeleton) | **NOT RUN** |
-| 7 | Birth date not public | `main.nr:3-10` | **PASS** (code structure) |
-| 8 | Grant only after verifier true | `LateNightPass.sol:33` before `:37` | **PASS** (tested) |
-| 9 | Underage fails | `main.nr` `#[test(should_fail)]` cases; `testUnderageProofRejectedByVerifier` | **PARTIAL** (circuit tests BLOCKED; mock test PASS) |
-| 10 | No secrets tracked | `.gitignore`; `git ls-files` clean | **PASS** |
+| 1 | Policy fixed by circuit/contract | `circuits/age_proof/src/main.nr:3-6` (global `MIN_AGE_DAYS=6575`, 18y@365.25); `contracts/src/LateNightPass.sol:24` (from `block.timestamp`), no setter | **PASS (design)** - fixed in circuit/contract, not caller-supplied |
+| 2 | Bound to claimer | `contracts/src/LateNightPass.sol:25,28-30` (`msg.sender`); `circuits/age_proof/src/main.nr:11,23-25` (nullifier = hash(salt,claimer)) | **PASS (with mock)** - `contracts/test/LateNightPass.t.sol:80-93` `testCopiedProofByAnotherAccountFails` |
+| 3 | Age enforced by assertion | `circuits/age_proof/src/main.nr:15,18-19` | **BLOCKED** - `#[test(should_fail)]` added; `nargo test` NOT RUN (nargo/bb missing on Windows; native not supported) |
+| 4 | No second acceptance | `contracts/src/LateNightPass.sol:20,21,37-38` | **PASS (with mock)** - `contracts/test/LateNightPass.t.sol:95-101` `testRepeatClaimFails` |
+| 5 | Stale proofs rejected | `contracts/src/LateNightPass.sol:24,28`; `circuits/age_proof/src/main.nr:15,18-19` | **PASS (with mock)** - `contracts/test/LateNightPass.t.sol:103-119` `testStaleDayAfterWarpFails` |
+| 6 | Proving on buyer device | `client/src/prove.ts` (skeleton), `client/README.md` | **NOT RUN** - skeleton only; deps not installed; no real noir_js/bb.js flow executed |
+| 7 | Birth date not public | `circuits/age_proof/src/main.nr:7,12` (private; not returned) | **PASS (design)** - birth_day private, not in public outputs |
+| 8 | Grant only after verifier true | `contracts/src/LateNightPass.sol:33-39` | **PASS (with mock)** - `contracts/test/LateNightPass.t.sol:134-141` `testVerifierFalseGrantsNothing` |
+| 9 | Underage fails | `circuits/age_proof/src/main.nr:48-66` `#[test(should_fail)]`; `contracts/test/LateNightPass.t.sol:144-152` | **BLOCKED** - circuit tests NOT RUN; contract mock test exists |
+| 10 | No secrets tracked | `.gitignore`; `git ls-files` scanned | **PASS** - no secrets/keys/mnemonics in tracked files |
 
 ## Run (actual results)
 

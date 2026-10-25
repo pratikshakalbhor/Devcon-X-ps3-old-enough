@@ -1,5 +1,5 @@
-use dep::std;
-
+// Policy fixed by circuit (not the prover). Approximation: 18 years * 365.25 days.
+// 18*365.25 = 6574.5, so 6575 days is the minimum integer days (>= 18 years with .25 leap-day approximation).
 global MIN_AGE_DAYS: u32 = 6575;
 
 fn main(
@@ -18,10 +18,9 @@ fn main(
     let age_days = current_day - birth_day;
     assert(age_days >= MIN_AGE_DAYS);
     
-    // Nullifier check: nullifier == poseidon2/pedersen hash(salt, claimer)
-    // NOTE: hash function name unverified against the installed version of Noir/stdlib
+    // Nullifier check: nullifier == hash(salt, claimer)
+    // Use stdlib hash
     let expected_nullifier = std::hash::pedersen_hash([salt, claimer]);
-    // Alternative (unverified): let expected_nullifier = std::hash::poseidon2_hash([salt, claimer]);
     assert(nullifier == expected_nullifier);
 }
 
@@ -45,7 +44,7 @@ fn exact_boundary() {
     main(birth_day, salt, current_day, claimer, nullifier);
 }
 
-#[test]
+#[test(should_fail)]
 fn one_day_short_should_fail() {
     let birth_day: u32 = 0;
     let current_day: u32 = 6574; // one day short
@@ -55,7 +54,7 @@ fn one_day_short_should_fail() {
     main(birth_day, salt, current_day, claimer, nullifier);
 }
 
-#[test]
+#[test(should_fail)]
 fn underage_should_fail() {
     let birth_day: u32 = 5000;
     let current_day: u32 = 10000; // age 5000 < 6575
@@ -65,7 +64,7 @@ fn underage_should_fail() {
     main(birth_day, salt, current_day, claimer, nullifier);
 }
 
-#[test]
+#[test(should_fail)]
 fn future_birth_should_fail() {
     let birth_day: u32 = 20000;
     let current_day: u32 = 10000; // current < birth
@@ -75,7 +74,7 @@ fn future_birth_should_fail() {
     main(birth_day, salt, current_day, claimer, nullifier);
 }
 
-#[test]
+#[test(should_fail)]
 fn wrong_nullifier_should_fail() {
     let birth_day: u32 = 0;
     let current_day: u32 = 20000;
