@@ -7,14 +7,14 @@ A Noir circuit, a Solidity access contract and a buyer-side client for claiming 
 | Item | State | Evidence |
 |---|---|---|
 | Circuit `circuits/age_proof/src/main.nr` | Written | Global `MIN_AGE_DAYS = 6575`. Private `birth_day`/`salt`, public `current_day`/`claimer`/`nullifier`. Asserts age >= 6575 and `nullifier == pedersen_hash([salt,claimer])`. Birth date never public/returned. |
-| `nargo test` (6 cases) | **BLOCKED** | `nargo` not found in PATH. No native Windows binaries available per official Noir docs; WSL not available. CI workflow added but failed (see below). |
-| `nargo compile` | **BLOCKED** | Same as above. |
-| `bb` proving, Solidity verifier generation | **NOT RUN / BLOCKED** | `bb` not installed. Real UltraHonk verifier not generated. |
-| Contract `contracts/src/LateNightPass.sol` | **PASS (unit tests)** | Logic verified by Foundry tests against **MockVerifier only**. Derives public inputs from `block.timestamp/1 days` and `msg.sender`, reverts on false before recording, no owner/other grant paths. |
-| Foundry tests | **PASS** | `forge test -vv`: 7/7 passed (all tests including `testUnderageProofRejectedByVerifier` with mock returning false). Mock-based only - not cryptographic proof verification. |
-| `forge build` | **PASS** | Exit code 0, compilation skipped (no changes). |
-| Client `client/` (noir_js, bb.js) | **PARTIAL** | Skeleton written. `npm install --ignore-scripts` completed, `npx tsc --noEmit` passes (exit 0). Proving/claiming **NOT RUN** (needs circuit artifacts). |
-| GitHub Actions (Noir CI) | **FAIL** | Workflow `.github/workflows/noir.yml` added and pushed. Run [40158580601](https://github.com/pratikshakalbhor/Devcon-X-ps3-old-enough/actions/runs/40158580601) completed with failure (ubuntu-latest, noirup). Logs not accessible without admin rights. |
+| `nargo test` (6 cases) | **BLOCKED (unverified)** | `nargo` not found in PATH. No native Windows binaries available per official Noir docs; WSL not available. CI workflow added but failed (see below). **Not executed locally.** |
+| `nargo compile` | **BLOCKED (unverified)** | Same as above. **No compiled artifact produced locally.** |
+| `bb` proving, Solidity verifier generation | **NOT RUN / BLOCKED (unverified)** | `bb` not installed. Real UltraHonk verifier not generated. **No cryptographic verifier artifact exists.** |
+| Contract `contracts/src/LateNightPass.sol` | **PASS (logic, mock-verifier only)** | Logic verified by Foundry tests against **MockVerifier only**. Derives public inputs from `block.timestamp/1 days` and `msg.sender`, reverts on false before recording, no owner/other grant paths. **No real proof verification.** |
+| Foundry tests | **PASS (mock-based)** | `forge test -vv`: 7/7 passed (all tests including `testUnderageProofRejectedByVerifier` with mock returning false). **Mock-based only - not cryptographic proof verification.** |
+| `forge build` | **PASS** | Exit code 0. |
+| Client `client/` (noir_js, bb.js) | **PARTIAL (unverified)** | Skeleton/updated flow written; nullifier computation fixed to match circuit (bb.js Pedersen). `npm install --ignore-scripts` completed, `npx tsc --noEmit` passes (exit 0). Proving/claiming **NOT RUN end-to-end** (needs compiled circuit artifacts `circuits/age_proof/target/age_proof.json` and verifier). |
+| GitHub Actions (Noir CI) | **FAIL (unverified)** | Workflow `.github/workflows/noir.yml` added and pushed. Run [40158580601](https://github.com/pratikshakalbhor/Devcon-X-ps3-old-enough/actions/runs/40158580601) completed with failure (ubuntu-latest, noirup). Logs not accessible without admin rights. **Circuit not successfully compiled/tested in CI.** |
 
 Nothing here has been proven end to end. Contract logic (binding, replay, staleness) is tested; cryptography is not.
 
@@ -57,38 +57,41 @@ The birth date is never public and never returned from `main`.
 
 ```bash
 forge build                          # PASS (exit 0)
-forge test -vv                       # PASS - 7/7 tests passed (MockVerifier only)
+forge test -vv                       # PASS - 7/7 tests passed (MockVerifier only, no real proofs)
 cd client && npm install --ignore-scripts  # PASS
 cd client && npx tsc --noEmit        # PASS (exit 0)
-cd circuits/age_proof && nargo test  # BLOCKED - nargo not installed (Windows native unavailable)
-nargo compile                       # BLOCKED
-bb write_vk / write_solidity_verifier # BLOCKED
+cd circuits/age_proof && nargo test  # BLOCKED - nargo not installed (Windows native unavailable); not run
+nargo compile                       # BLOCKED - not run
+bb write_vk / write_solidity_verifier # BLOCKED - not run
 ```
+
+**Note:** All passing results above are either build/typecheck passes or contract tests against `MockVerifier`. No real ZK proof generation/verification has been executed.
 
 ## What stays private, what is public, what you must trust
 
-- **Private:** birth date and salt, never leaving the device (design; client NOT RUN).
+- **Private:** birth date and salt, never leaving the device (design; client NOT RUN end-to-end).
 - **Public:** current day, claimer address, nullifier, and the fact this address holds a pass.
 - **Trust, not solved:**
   - Nothing proves the birth date is real. A prover can type any date. This proves "I know an 18+ date bound to this account". The door ID check is the real-world anchor; an issuer-signed credential would be needed and is not implemented.
   - Sybil: one pass per address, so one person can use many addresses.
   - `block.timestamp` is validator-influenced by seconds, and the day boundary makes proofs valid for one UTC day only.
   - Age uses 365.25-day years.
-  - The generated Solidity verifier would be trusted code; not yet generated.
-  - **All cryptographic verification untested** - only MockVerifier used.
+  - The generated Solidity verifier would be trusted code; **not yet generated**.
+  - **All cryptographic verification untested** - only MockVerifier used in contract tests. No real proof has been generated or verified.
 
 ## Next steps
 
 1. **Noir toolchain:** Native Windows not supported. CI added but failing - need GitHub Actions logs/permissions to debug. Alternatively use a Linux machine/VM. Choose compatible Noir/bb versions.
-2. **Circuit:** Once toolchain available, run `nargo test` and `nargo compile`. Fix any compatibility issues without weakening checks.
+2. **Circuit:** Once toolchain available, run `nargo test` and `nargo compile`. Fix any compatibility issues without weakening checks. Obtain compiled artifact at `circuits/age_proof/target/age_proof.json` for client use.
 3. **Verifier:** Generate with `bb write_vk` and `bb write_solidity_verifier`, inspect generated code, replace MockVerifier only if compatible.
 4. **Integration tests:** Add Foundry tests with real proofs.
-5. **Client:** Complete proving/claiming flow against deployed contracts.
+5. **Client:** Complete proving/claiming flow against deployed contracts using real artifacts.
 
 ## Security/Integration Limitations
-- No real ZK proof verification performed
-- MockVerifier used in all contract tests
-- Circuit not compiled/tested locally or successfully in CI
-- No end-to-end testing
-- Verifier not generated/deployed
-- Production readiness not established
+- **No real ZK proof verification performed** - all cryptographic verification untested
+- **MockVerifier used in all contract tests** - contract logic tested with mocks only
+- **Circuit not compiled/tested locally or successfully in CI** - `nargo test`/`nargo compile` blocked
+- **No end-to-end testing** - client proving/claiming not executed
+- **Verifier not generated/deployed** - no real UltraHonk Solidity verifier
+- **No compiled circuit artifacts** - `circuits/age_proof/target/age_proof.json` missing
+- **Production readiness not established**
