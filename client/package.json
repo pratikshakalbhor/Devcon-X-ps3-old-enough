@@ -1,0 +1,20 @@
+{
+  "name": "old-enough-client",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "CLI skeleton for proving age locally with noir_js and bb.js (NOT RUN)",
+  "scripts": {
+    "prove": "ts-node src/prove.ts",
+    "claim": "ts-node scripts/claim.ts"
+  },
+  "dependencies": {
+    "@noir-lang/noir_js": "*",
+    "@aztec/bb.js": "*",
+    "ethers": "^6.0.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.0.0",
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  }
+}

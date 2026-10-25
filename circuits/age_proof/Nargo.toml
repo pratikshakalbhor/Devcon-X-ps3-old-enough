@@ -1,0 +1,9 @@
+[package]
+name = "age_proof"
+type = "bin"
+authors = [""]
+compiler_version = ">=0.30.0"
+
+[dependencies]
+# Dependencies may vary by Noir version; hash function name unverified against installed version.
+# Using std where possible.

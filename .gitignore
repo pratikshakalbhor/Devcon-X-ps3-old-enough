@@ -1,0 +1,37 @@
+# secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# node
+node_modules/
+client/node_modules/
+client/dist/
+*.tsbuildinfo
+
+# foundry
+out/
+cache/
+broadcast/
+lib/forge-std/.git/
+
+# noir / proofs
+target/
+circuits/**/target/
+proof.json
+proofs/
+*.proof
+Prover.toml
+
+# salts / private inputs (never commit)
+salt.txt
+salt*.json
+private-inputs.json
+witness*.json
+
+# misc
+.DS_Store
+Thumbs.db
+*.log
