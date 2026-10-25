@@ -140,11 +140,15 @@ contract LateNightPassTest is Test {
         assertFalse(pass.nullifierUsed(NULLIFIER));
     }
     
-    // Underage case is documented as circuit-level (NOT RUN)
-    function testUnderageCaseDocumentedAsCircuitLevel() public {
-        // This test documents that underage validation happens in the circuit (NOT RUN here)
-        // The contract cannot verify age without proof; only the circuit enforces MIN_AGE_DAYS
-        assertTrue(true);
+    // Underage case - circuit-level enforcement; tested here with MockVerifier returning false for an underage witness representation
+    function testUnderageProofRejectedByVerifier() public {
+        // MockVerifier returns false for a proof representing an underage witness (mock, not real UltraHonk verifier)
+        mockVerifier.setExpected(new bytes32[](3), false);
+        vm.prank(alice);
+        vm.expectRevert("Invalid proof");
+        pass.claim(PROOF, NULLIFIER);
+        assertFalse(pass.hasPass(alice));
+        assertFalse(pass.nullifierUsed(NULLIFIER));
     }
 }
 // Tests use a mock, not the real UltraHonk verifier

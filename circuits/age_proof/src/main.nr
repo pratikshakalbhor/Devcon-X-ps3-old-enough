@@ -1,5 +1,7 @@
 use dep::std;
 
+global MIN_AGE_DAYS: u32 = 6575;
+
 fn main(
     // private
     birth_day: u32,
@@ -9,8 +11,6 @@ fn main(
     claimer: pub Field,
     nullifier: pub Field,
 ) {
-    const MIN_AGE_DAYS: u32 = 6575;
-    
     // Basic sanity
     assert(current_day >= birth_day);
     
