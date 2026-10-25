@@ -1,18 +1,50 @@
-# Client (NOT RUN)
+# Client (buyer-side proving)
 
-This directory contains README-level instructions and a TypeScript prove/claim CLI skeleton using `noir_js` and `bb.js`. 
+This client generates a cryptographic proof locally using `@noir-lang/noir_js` and `@aztec/bb.js`. **Birth date and salt never leave the device.**
 
-## Setup (not executed)
-1. Install dependencies: `npm install` (requires packages like `@noir-lang/noir_js`, `@aztec/bb.js` or equivalent). 
-2. Ensure circuit artifacts are available (from `nargo compile` producing target artifacts) - **nargo not installed**.
-3. Ensure proving backend (bb) is available - **bb not installed**.
+## Prerequisites
+- Node.js 18+ (tested with v22)
+- Compiled circuit artifact from `circuits/age_proof/target/age_proof.json` (produced by `nargo compile`)
+- nargo/bb to compile the circuit (or download artifact from CI)
 
-## Prove locally (never sends birth date or salt)
-- The prover takes private inputs `birth_day`, `salt` and public inputs `current_day`, `claimer`, `nullifier` from a local JSON (e.g. `Prover.toml`/input files). 
-- Proof generation happens locally via `noir_js` + `bb.js`. 
-- **Birth date and salt are never sent over network.** Only `proof` and `nullifier` are sent in the claim transaction.
+**Windows note:** Noir/Barretenberg native tooling may have limitations on Windows. The Noir CI runs on Ubuntu (GitHub Actions). If local proving deps don't work on Windows, use the CI-generated artifact or a Linux environment.
 
-## Claim
-- The CLI constructs a transaction to `LateNightPass.claim(proof, nullifier)`. The contract derives `current_day`, `claimer` from chain state; caller does not supply them.
+## Install dependencies (PowerShell)
+```powershell
+cd "D:\Devcon X ps3\client"
+npm install
+```
 
-**Status:** NOT RUN. No packages installed, no compilation/execution performed.
+## Build circuit artifact
+From `circuits/age_proof` (requires nargo):
+```powershell
+cd "D:\Devcon X ps3\circuits\age_proof"
+nargo compile
+# Produces target/age_proof.json
+```
+
+If nargo is not installed locally, use the GitHub Actions artifact from the passing Noir workflow.
+
+## Generate proof locally
+```powershell
+cd "D:\Devcon X ps3\client"
+npm run prove -- --birth-date 1990-01-01 --account 0xA11CE --day 20000
+```
+
+This writes `proof.json` (gitignored) containing only public data: `proof`, `nullifier`, `current_day`, `publicInputs`. **Birth date and salt are never logged or written to disk.**
+
+## Claim on-chain
+```powershell
+cd "D:\Devcon X ps3\client"
+npm run claim -- --pass 0x<contract> --proof ./proof.json --rpc http://127.0.0.1:8545 --key <private_key>
+```
+(Claim script skeleton exists; wire it to your setup as needed.)
+
+## Security notes
+- Private inputs (birth_day, salt) are only used in-memory for witness generation
+- No network requests are made with private inputs
+- The nullifier is computed as `hash(salt, claimer)` matching the circuit
+- Public inputs order must match circuit: `[current_day, claimer, nullifier]` (as built by contract)
+
+## Status
+**Implementation added.** Proof generation requires compiled circuit artifact + compatible noir_js/bb.js. On Windows without native Noir tooling, proving may need Linux/CI environment.
