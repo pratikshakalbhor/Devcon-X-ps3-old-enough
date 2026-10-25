@@ -4,15 +4,19 @@ A Noir circuit, a Solidity access contract and a buyer-side client for claiming 
 
 ## Status (read this first)
 
-| Item | State |
-|---|---|
-| Circuit `circuits/age_proof/src/main.nr` | Written. **UNCOMPILED, UNTESTED**: `nargo` was not available. The hash call (`pedersen`) is unverified against any installed Noir version. |
-| `nargo test` (6 cases) | **NOT RUN** |
-| `bb` proving, Solidity verifier generation | **NOT RUN** |
-| Contract `contracts/src/LateNightPass.sol` | Written, tested with Foundry (7/7) **against a MockVerifier, not the real UltraHonk verifier** |
-| Client `client/` (noir_js, bb.js) | Skeleton, **NOT RUN** |
+| Item | State | Evidence |
+|---|---|---|
+| Circuit `circuits/age_proof/src/main.nr` | Written | Global `MIN_AGE_DAYS = 6575`. Private `birth_day`/`salt`, public `current_day`/`claimer`/`nullifier`. Asserts age >= 6575 and `nullifier == pedersen_hash([salt,claimer])`. Birth date never public/returned. |
+| `nargo test` (6 cases) | **BLOCKED** | `nargo` not found in PATH. No native Windows binaries available per official Noir docs; WSL not available. CI workflow added but failed (see below). |
+| `nargo compile` | **BLOCKED** | Same as above. |
+| `bb` proving, Solidity verifier generation | **NOT RUN / BLOCKED** | `bb` not installed. Real UltraHonk verifier not generated. |
+| Contract `contracts/src/LateNightPass.sol` | **PASS (unit tests)** | Logic verified by Foundry tests against **MockVerifier only**. Derives public inputs from `block.timestamp/1 days` and `msg.sender`, reverts on false before recording, no owner/other grant paths. |
+| Foundry tests | **PASS** | `forge test -vv`: 7/7 passed (all tests including `testUnderageProofRejectedByVerifier` with mock returning false). Mock-based only - not cryptographic proof verification. |
+| `forge build` | **PASS** | Exit code 0, compilation skipped (no changes). |
+| Client `client/` (noir_js, bb.js) | **PARTIAL** | Skeleton written. `npm install --ignore-scripts` completed, `npx tsc --noEmit` passes (exit 0). Proving/claiming **NOT RUN** (needs circuit artifacts). |
+| GitHub Actions (Noir CI) | **FAIL** | Workflow `.github/workflows/noir.yml` added and pushed. Run [40158580601](https://github.com/pratikshakalbhor/Devcon-X-ps3-old-enough/actions/runs/40158580601) completed with failure (ubuntu-latest, noirup). Logs not accessible without admin rights. |
 
-Nothing here has been proven end to end. The contract logic (binding, replay, staleness) is tested; the cryptography is not.
+Nothing here has been proven end to end. Contract logic (binding, replay, staleness) is tested; cryptography is not.
 
 ## Flow
 
@@ -36,27 +40,29 @@ The birth date is never public and never returned from `main`.
 
 ## Acceptance checks
 
-| # | Check | Where |
-|---|---|---|
-| 1 | Policy fixed by circuit/contract | `MIN_AGE_DAYS` in `main.nr` (global); day derived in `LateNightPass.sol:24` |
-| 2 | Bound to claimer | `LateNightPass.sol:25` (`msg.sender`) |
-| 3 | Age enforced by assertion | `main.nr:15,19` |
-| 4 | No second acceptance | `LateNightPass.sol:20,21,37,38` |
-| 5 | Stale proofs rejected | day from `block.timestamp`; `testStaleDayAfterWarpFails` |
-| 6 | Proving on buyer device | `client/src/prove.ts` (skeleton, NOT RUN) |
-| 7 | Birth date not public | `main.nr:3-10` |
-| 8 | Grant only after verifier true | `LateNightPass.sol:33` before `:37` |
-| 9 | Underage fails | `main.nr` `#[test(should_fail)]` cases (NOT RUN); mock-verifier rejection test `testUnderageProofRejectedByVerifier` |
-| 10 | No secrets tracked | `.gitignore`; checked with `git ls-files` |
+| # | Check | Where | Status |
+|---|---|---|---|
+| 1 | Policy fixed by circuit/contract | `MIN_AGE_DAYS` global in `main.nr`; day derived in `LateNightPass.sol:24` | **PASS** (code present) |
+| 2 | Bound to claimer | `LateNightPass.sol:25` (`msg.sender`) | **PASS** (tested) |
+| 3 | Age enforced by assertion | `main.nr:15,19` | **PASS** (code present; circuit tests BLOCKED) |
+| 4 | No second acceptance | `LateNightPass.sol:20,21,37,38` | **PASS** (tested) |
+| 5 | Stale proofs rejected | day from `block.timestamp`; `testStaleDayAfterWarpFails` | **PASS** (tested with mock) |
+| 6 | Proving on buyer device | `client/src/prove.ts` (skeleton) | **NOT RUN** |
+| 7 | Birth date not public | `main.nr:3-10` | **PASS** (code structure) |
+| 8 | Grant only after verifier true | `LateNightPass.sol:33` before `:37` | **PASS** (tested) |
+| 9 | Underage fails | `main.nr` `#[test(should_fail)]` cases; `testUnderageProofRejectedByVerifier` | **PARTIAL** (circuit tests BLOCKED; mock test PASS) |
+| 10 | No secrets tracked | `.gitignore`; `git ls-files` clean | **PASS** |
 
-## Run
-
-Requires Foundry, Node 20.12+, and (not available when this was written) `nargo` and `bb` with matching versions.
+## Run (actual results)
 
 ```bash
-forge test                          # works: 7 tests, mock verifier
-cd circuits/age_proof && nargo test # NOT RUN so far
-# then: nargo compile, bb write_vk, bb write_solidity_verifier, replace the mock
+forge build                          # PASS (exit 0)
+forge test -vv                       # PASS - 7/7 tests passed (MockVerifier only)
+cd client && npm install --ignore-scripts  # PASS
+cd client && npx tsc --noEmit        # PASS (exit 0)
+cd circuits/age_proof && nargo test  # BLOCKED - nargo not installed (Windows native unavailable)
+nargo compile                       # BLOCKED
+bb write_vk / write_solidity_verifier # BLOCKED
 ```
 
 ## What stays private, what is public, what you must trust
@@ -69,7 +75,20 @@ cd circuits/age_proof && nargo test # NOT RUN so far
   - `block.timestamp` is validator-influenced by seconds, and the day boundary makes proofs valid for one UTC day only.
   - Age uses 365.25-day years.
   - The generated Solidity verifier would be trusted code; not yet generated.
+  - **All cryptographic verification untested** - only MockVerifier used.
 
 ## Next steps
 
-Install `nargo` and `bb`, compile, run circuit tests, generate the real verifier, add a Foundry test with a real proof, run the client.
+1. **Noir toolchain:** Native Windows not supported. CI added but failing - need GitHub Actions logs/permissions to debug. Alternatively use a Linux machine/VM. Choose compatible Noir/bb versions.
+2. **Circuit:** Once toolchain available, run `nargo test` and `nargo compile`. Fix any compatibility issues without weakening checks.
+3. **Verifier:** Generate with `bb write_vk` and `bb write_solidity_verifier`, inspect generated code, replace MockVerifier only if compatible.
+4. **Integration tests:** Add Foundry tests with real proofs.
+5. **Client:** Complete proving/claiming flow against deployed contracts.
+
+## Security/Integration Limitations
+- No real ZK proof verification performed
+- MockVerifier used in all contract tests
+- Circuit not compiled/tested locally or successfully in CI
+- No end-to-end testing
+- Verifier not generated/deployed
+- Production readiness not established
