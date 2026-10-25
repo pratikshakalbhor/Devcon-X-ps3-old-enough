@@ -1,0 +1,222 @@
+note[screaming-snake-case-immutable]: immutables should use SCREAMING_SNAKE_CASE
+  ╭▸ contracts/src/LateNightPass.sol:7:32
+  │
+7 │     IVerifier public immutable verifier;
+  │                                ━━━━━━━━ help: consider using: `VERIFIER`
+  │
+  ╰ help: https://getfoundry.sh/forge/linting/screaming-snake-case-immutable
+
+note[unaliased-plain-import]: use named imports '{A, B}' or alias 'import ".." as X'
+  ╭▸ contracts/test/LateNightPass.t.sol:4:8
+  │
+4 │ import "forge-std/Test.sol";
+  │        ━━━━━━━━━━━━━━━━━━━━
+  │
+  ╰ help: https://getfoundry.sh/forge/linting/unaliased-plain-import
+
+note[custom-errors]: prefer using custom errors on revert and require calls
+   ╭▸ contracts/src/LateNightPass.sol:20:9
+   │
+20 │         require(!nullifierUsed[nullifier], "Nullifier already used");
+   │         ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   │
+   ╰ help: https://getfoundry.sh/forge/linting/custom-errors
+
+note[custom-errors]: prefer using custom errors on revert and require calls
+   ╭▸ contracts/src/LateNightPass.sol:21:9
+   │
+21 │         require(!hasPass[msg.sender], "Already has pass");
+   │         ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   │
+   ╰ help: https://getfoundry.sh/forge/linting/custom-errors
+
+note[multi-contract-file]: prefer having only one contract, interface or library per file
+   ╭▸ contracts/test/LateNightPass.t.sol:10:10
+   │
+10 │ contract MockVerifier is IVerifier {
+   │          ━━━━━━━━━━━━
+   │
+   ╰ help: https://getfoundry.sh/forge/linting/multi-contract-file
+
+note[multi-contract-file]: prefer having only one contract, interface or library per file
+   ╭▸ contracts/test/LateNightPass.t.sol:51:10
+   │
+51 │ contract LateNightPassTest is Test {
+   │          ━━━━━━━━━━━━━━━━━
+   │
+   ╰ help: https://getfoundry.sh/forge/linting/multi-contract-file
+
+note[mixed-case-variable]: mutable variables should use mixedCase
+   ╭▸ contracts/src/LateNightPass.sol:24:16
+   │
+24 │         uint32 current_day = uint32(block.timestamp / 1 days);
+   │                ━━━━━━━━━━━ help: consider using: `currentDay`
+   │
+   ╰ help: https://getfoundry.sh/forge/linting/mixed-case-variable
+
+note[custom-errors]: prefer using custom errors on revert and require calls
+   ╭▸ contracts/src/LateNightPass.sol:34:9
+   │
+34 │         require(ok, "Invalid proof");
+   │         ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   │
+   ╰ help: https://getfoundry.sh/forge/linting/custom-errors
+
+note[literal-instead-of-constant]: this literal appears multiple times in the contract; declare a named constant for it
+   ╭▸ contracts/test/LateNightPass.t.sol:63:54
+   │
+63 │         uint32 currentDay = uint32(block.timestamp / 1 days);
+   │                                                      ━━━━━━
+   │
+   ╰ help: https://getfoundry.sh/forge/linting/literal-instead-of-constant
+
+note[literal-instead-of-constant]: this literal appears multiple times in the contract; declare a named constant for it
+   ╭▸ contracts/test/LateNightPass.t.sol:65:51
+   │
+65 │         bytes32[] memory expected = new bytes32[](3);
+   │                                                   ━
+   │
+   ╰ help: https://getfoundry.sh/forge/linting/literal-instead-of-constant
+
+note[literal-instead-of-constant]: this literal appears multiple times in the contract; declare a named constant for it
+   ╭▸ contracts/test/LateNightPass.t.sol:82:54
+   │
+82 │         uint32 currentDay = uint32(block.timestamp / 1 days);
+   │                                                      ━━━━━━
+   │
+   ╰ help: https://getfoundry.sh/forge/linting/literal-instead-of-constant
+
+warning[missing-events-access-control]: `hasPass` is changed without an event but is used for access control
+   ╭▸ contracts/src/LateNightPass.sol:38:9
+   │
+38 │         hasPass[msg.sender] = true;
+   │         ━━━━━━━━━━━━━━━━━━━
+   │
+   ╰ help: https://getfoundry.sh/forge/linting/missing-events-access-control
+
+note[literal-instead-of-constant]: this literal appears multiple times in the contract; declare a named constant for it
+   ╭▸ contracts/test/LateNightPass.t.sol:84:54
+   │
+84 │         bytes32[] memory expectedBob = new bytes32[](3);
+   │                                                      ━
+   │
+   ╰ help: https://getfoundry.sh/forge/linting/literal-instead-of-constant
+
+note[literal-instead-of-constant]: this literal appears multiple times in the contract; declare a named constant for it
+    ╭▸ contracts/test/LateNightPass.t.sol:109:55
+    │
+109 │         uint32 currentDay2 = uint32(block.timestamp / 1 days);
+    │                                                       ━━━━━━
+    │
+    ╰ help: https://getfoundry.sh/forge/linting/literal-instead-of-constant
+
+note[literal-instead-of-constant]: this literal appears multiple times in the contract; declare a named constant for it
+    ╭▸ contracts/test/LateNightPass.t.sol:111:54
+    │
+111 │         bytes32[] memory expectedBob = new bytes32[](3);
+    │                                                      ━
+    │
+    ╰ help: https://getfoundry.sh/forge/linting/literal-instead-of-constant
+
+warning[reentrancy-events]: event emitted after an external call; reentrancy can reorder or fabricate logs that off-chain consumers rely on
+   ╭▸ contracts/src/LateNightPass.sol:39:9
+   │
+39 │         emit PassClaimed(msg.sender, nullifier);
+   │         ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   │
+   ╰ help: https://getfoundry.sh/forge/linting/reentrancy-events
+
+note[literal-instead-of-constant]: this literal appears multiple times in the contract; declare a named constant for it
+    ╭▸ contracts/test/LateNightPass.t.sol:123:54
+    │
+123 │         uint32 currentDay = uint32(block.timestamp / 1 days);
+    │                                                      ━━━━━━
+    │
+    ╰ help: https://getfoundry.sh/forge/linting/literal-instead-of-constant
+
+note[literal-instead-of-constant]: this literal appears multiple times in the contract; declare a named constant for it
+    ╭▸ contracts/test/LateNightPass.t.sol:125:51
+    │
+125 │         bytes32[] memory expected = new bytes32[](3);
+    │                                                   ━
+    │
+    ╰ help: https://getfoundry.sh/forge/linting/literal-instead-of-constant
+
+note[literal-instead-of-constant]: this literal appears multiple times in the contract; declare a named constant for it
+    ╭▸ contracts/test/LateNightPass.t.sol:135:48
+    │
+135 │         mockVerifier.setExpected(new bytes32[](3), false); // shouldAccept false
+    │                                                ━
+    │
+    ╰ help: https://getfoundry.sh/forge/linting/literal-instead-of-constant
+
+warning[unsafe-typecast]: typecasts that can truncate values should be checked
+   ╭▸ contracts/src/LateNightPass.sol:24:30
+   │
+24 │         uint32 current_day = uint32(block.timestamp / 1 days);
+   │                              ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   │
+   ├ note: consider disabling this lint if you're certain the cast is safe
+   │       
+   │       // casting to 'uint32' is safe because [explain why]
+   │       // forge-lint: disable-next-line(unsafe-typecast)
+   │       
+   │       
+   ╰ help: https://getfoundry.sh/forge/linting/unsafe-typecast
+
+warning[unsafe-typecast]: typecasts that can truncate values should be checked
+   ╭▸ contracts/test/LateNightPass.t.sol:63:29
+   │
+63 │         uint32 currentDay = uint32(block.timestamp / 1 days);
+   │                             ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   │
+   ├ note: consider disabling this lint if you're certain the cast is safe
+   │       
+   │       // casting to 'uint32' is safe because [explain why]
+   │       // forge-lint: disable-next-line(unsafe-typecast)
+   │       
+   │       
+   ╰ help: https://getfoundry.sh/forge/linting/unsafe-typecast
+
+warning[unsafe-typecast]: typecasts that can truncate values should be checked
+   ╭▸ contracts/test/LateNightPass.t.sol:82:29
+   │
+82 │         uint32 currentDay = uint32(block.timestamp / 1 days);
+   │                             ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   │
+   ├ note: consider disabling this lint if you're certain the cast is safe
+   │       
+   │       // casting to 'uint32' is safe because [explain why]
+   │       // forge-lint: disable-next-line(unsafe-typecast)
+   │       
+   │       
+   ╰ help: https://getfoundry.sh/forge/linting/unsafe-typecast
+
+warning[unsafe-typecast]: typecasts that can truncate values should be checked
+    ╭▸ contracts/test/LateNightPass.t.sol:109:30
+    │
+109 │         uint32 currentDay2 = uint32(block.timestamp / 1 days);
+    │                              ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    │
+    ├ note: consider disabling this lint if you're certain the cast is safe
+    │       
+    │       // casting to 'uint32' is safe because [explain why]
+    │       // forge-lint: disable-next-line(unsafe-typecast)
+    │       
+    │       
+    ╰ help: https://getfoundry.sh/forge/linting/unsafe-typecast
+
+warning[unsafe-typecast]: typecasts that can truncate values should be checked
+    ╭▸ contracts/test/LateNightPass.t.sol:123:29
+    │
+123 │         uint32 currentDay = uint32(block.timestamp / 1 days);
+    │                             ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    │
+    ├ note: consider disabling this lint if you're certain the cast is safe
+    │       
+    │       // casting to 'uint32' is safe because [explain why]
+    │       // forge-lint: disable-next-line(unsafe-typecast)
+    │       
+    │       
+    ╰ help: https://getfoundry.sh/forge/linting/unsafe-typecast
+
