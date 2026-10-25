@@ -1,0 +1,35 @@
+name: Noir Circuit Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Noir toolchain (noirup)
+        run: |
+          curl -L https://raw.githubusercontent.com/noir-lang/noirup/main/install | bash
+          export PATH="$HOME/.nargo/bin:$PATH"
+          echo "$HOME/.nargo/bin" >> $GITHUB_PATH
+
+      - name: Install nargo and bb (compatible versions)
+        run: |
+          export PATH="$HOME/.nargo/bin:$PATH"
+          noirup --version nightly
+          nargo --version
+          bb --version || true
+
+      - name: Test and compile circuit
+        working-directory: circuits/age_proof
+        run: |
+          export PATH="$HOME/.nargo/bin:$PATH"
+          nargo test
+          nargo compile
